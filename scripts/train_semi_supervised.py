@@ -16,19 +16,19 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from mri_semisupervised.config import (  # noqa: E402
-    CLASSES,
+from mri_semisupervised.config import (
     CLASS_TO_INDEX,
-    ClusteringConfig,
-    FeatureConfig,
+    CLASSES,
     PROCESSED_DIR,
     SEED,
+    ClusteringConfig,
+    FeatureConfig,
     TrainingConfig,
     ensure_dirs,
     set_global_seeds,
 )
-from mri_semisupervised.features.extractor import load_cached_features  # noqa: E402
-from mri_semisupervised.models.semi_supervised import (  # noqa: E402
+from mri_semisupervised.features.extractor import load_cached_features
+from mri_semisupervised.models.semi_supervised import (
     aggregate_reports,
     cross_validate,
 )
