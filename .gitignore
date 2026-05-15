@@ -80,6 +80,8 @@ logs/
 *.toc
 *.out
 
+# --- Outils de l'éditeur ---
+
 # --- Documentation source fournie ---
 infos/
 
