@@ -13,7 +13,11 @@ if importlib.util.find_spec("torch") is None:  # pragma: no cover
 
 from mri_semisupervised.config import FeatureConfig
 from mri_semisupervised.data.loader import discover_images
-from mri_semisupervised.features.extractor import build_backbone, extract_features, load_cached_features
+from mri_semisupervised.features.extractor import (
+    build_backbone,
+    extract_features,
+    load_cached_features,
+)
 
 
 def test_build_backbone_resnet18_has_identity_head() -> None:
