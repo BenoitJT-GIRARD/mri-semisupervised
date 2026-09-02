@@ -1,7 +1,7 @@
 [project]
 name = "mri_semisupervised"
 version = "0.1.0"
-description = "Exploration, clustering and semi-supervised learning on brain MRI for tumor detection."
+description = "Leak-free protocol for semi-supervised learning on brain MRI, with a negative control."
 authors = [{ name = "Benoît J. T. GIRARD", email = "53222414+BenoitJT-GIRARD@users.noreply.github.com" }]
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
@@ -51,10 +51,10 @@ packages = ["src/mri_semisupervised"]
 
 # --- PyTorch CUDA 12.6 builds (override default PyPI for torch / torchvision) ---
 #
-# Le projet est entraîné sur GPU NVIDIA. uv résout torch et torchvision depuis
-# l'index officiel PyTorch ; tomber sur les wheels +cpu détruirait les
-# performances et n'utiliserait pas la RTX. Si vous compilez sur une machine
-# sans GPU, retirez ces deux blocs.
+# The project trains on an NVIDIA GPU. uv resolves torch and torchvision from the
+# official PyTorch index; falling back to the +cpu wheels would destroy the
+# throughput and leave the card idle. On a machine without a GPU, drop these two
+# blocks.
 
 [[tool.uv.index]]
 name = "pytorch-cu126"
