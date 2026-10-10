@@ -1,4 +1,4 @@
-# Figure style v1 — generated 2026-09-16. Copy: edit the source, not this file.
+# Figure style v1 — generated 2026-10-10. Copy: edit the source, not this file.
 
 """Figure style: one palette, one writer, and a refusal to publish an unreadable figure.
 
@@ -8,7 +8,7 @@ wrote in ``reports/figures/MANIFEST.json``.
 
 It also refuses. A figure whose axes carry data without saying what they measure, or whose
 sample size is not declared, is not written at all — a reader cannot check a number they
-cannot read, and a figure that omits its N is a claim without an effective.
+cannot read, and a figure that omits its N makes a claim nobody can weigh.
 
 Colours are taken by ROLE, never by position. ``series_colours`` assigns by name, so an
 entity keeps its colour across every figure; a control or a baseline is grey by contract, a
@@ -437,7 +437,7 @@ def _format_n(n: int | Mapping[str, int] | str) -> str:
 
 
 def _stamp(fig: Any, parts: Sequence[str]) -> None:
-    """Write the effective and the dispersion into the image, not only into the caption."""
+    """Write the sample size and the dispersion into the image, not only into the caption."""
 
     fig.text(
         0.005,
@@ -485,7 +485,7 @@ def save_figure(
 ) -> Path:
     """Write a figure, or refuse it.
 
-    ``n`` is the effective the figure rests on, and it is mandatory. ``dispersion`` names what
+    ``n`` is the sample size the figure rests on, and it is mandatory. ``dispersion`` names what
     an error bar or a band means — "±1 SD across 25 folds", "95% bootstrap CI, 2000 resamples" —
     and becomes mandatory as soon as the figure draws one: a spread nobody can name is a spread
     nobody can read. ``source`` is the script that produced the figure.
@@ -538,7 +538,7 @@ def save_svg(
     """Write a hand-built SVG under the same contract as a plotted figure.
 
     A figure written by hand escapes every check matplotlib allows, so the axis labels and the
-    effective are passed explicitly and recorded the same way.
+    sample size are passed explicitly and recorded the same way.
     """
 
     target = Path(path)
