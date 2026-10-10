@@ -17,8 +17,10 @@ dependencies = [
     "matplotlib>=3.9",
     "seaborn>=0.13",
     "tqdm>=4.66",
-    "torch>=2.3",
-    "torchvision>=0.18",
+    # 2.13 is the first release past torch's advisory. 2.14.1 stops the end-to-end run on
+    # the CUDA 12.6 build under Windows, with an access violation in the training process.
+    "torch>=2.13,<2.14",
+    "torchvision>=0.28,<0.29",
 ]
 
 [project.optional-dependencies]
