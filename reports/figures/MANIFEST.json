@@ -29,7 +29,7 @@
       "sha256": "db77499f994a7bc03c777d4f2a205a5785e28697926c9ecedf023ee4d0a7b7a0",
       "source": "scripts/build_figures.py",
       "style_version": 1,
-      "written": "2026-09-16"
+      "written": "2026-10-10"
     },
     "calibration.png": {
       "axes": [
@@ -45,7 +45,7 @@
       "sha256": "4b526dd85c57a612e5d994d1763e89933c03855d42909f3de3e35f2ed2b1d3ec",
       "source": "scripts/build_figures.py",
       "style_version": 1,
-      "written": "2026-09-16"
+      "written": "2026-10-10"
     },
     "dataset_composition.png": {
       "axes": [
@@ -98,7 +98,7 @@
       "sha256": "750d7ae102763d82d59a1c748af0db7249a452c13097a7dd6684e6360558724d",
       "source": "scripts/build_figures.py",
       "style_version": 1,
-      "written": "2026-09-16"
+      "written": "2026-10-10"
     },
     "leak_price.png": {
       "axes": [
@@ -119,7 +119,7 @@
       "sha256": "6a2b69d98f1ecf71751f9c5e40b1840b09e778c27d83af1ebaf1f8f02d0faee6",
       "source": "scripts/build_figures.py",
       "style_version": 1,
-      "written": "2026-09-16"
+      "written": "2026-10-10"
     },
     "mechanisms.png": {
       "axes": [
@@ -135,7 +135,7 @@
       "sha256": "bb5cb05d4221dc3721a51207cd215bbe711f8deb615ad3b3571b387b5b2f3d0a",
       "source": "scripts/build_figures.py",
       "style_version": 1,
-      "written": "2026-09-16"
+      "written": "2026-10-10"
     },
     "paired_differences.png": {
       "axes": [
@@ -161,7 +161,7 @@
       "sha256": "9ac2ee3645f728289b2bfa5fff7915f04065166af4dc9db936ddd75bf9ecece3",
       "source": "scripts/build_figures.py",
       "style_version": 1,
-      "written": "2026-09-16"
+      "written": "2026-10-10"
     },
     "roc_arms.png": {
       "axes": [
@@ -177,7 +177,7 @@
       "sha256": "4b71f9f32ea8e9a04306427881c1b4fe8f6ac7672e2186077bb3a2b4bb9f0698",
       "source": "scripts/build_figures.py",
       "style_version": 1,
-      "written": "2026-09-16"
+      "written": "2026-10-10"
     }
   },
   "schema": "image-manifest/1"
