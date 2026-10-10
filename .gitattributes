@@ -8,8 +8,10 @@
 *.yaml text eol=lf
 
 # Notebooks are JSON. They are text, but never merged by union: git would splice two
-# versions into a file no reader can open, and report no conflict.
-*.ipynb text eol=lf
+# versions into a file no reader can open, and report no conflict. They are also the
+# laboratory notebook, not the code the project runs: GitHub's language statistics count
+# them as documentation, so the bar measures the code.
+*.ipynb text eol=lf linguist-documentation
 
 # Binary: never converted on checkout, never diffed as text.
 *.png binary
