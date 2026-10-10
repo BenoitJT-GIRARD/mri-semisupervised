@@ -39,8 +39,8 @@ what that identity turns up, and they are the reason the protocol looks the way 
 | Labelled images also sitting in the unlabelled pool | 31, in 32 files |
 | Redundant copies inside the unlabelled pool | 63 |
 | Unlabelled images left for pre-training | 1 311 |
-n = 1 506 files. `scripts/build_manifest.py` writes these counts to
-[`reports/dataset_summary.json`](../reports/dataset_summary.json), which is where they are read from.
+> n = 1 506 files. `scripts/build_manifest.py` writes these counts to
+> [`reports/dataset_summary.json`](../reports/dataset_summary.json), which is where they are read from.
 
 <!-- source: ../reports/figures/MANIFEST.json -->
 ![What the duplicate rules do to the files the archive ships: the evaluation images and the pre-training pool, then the three categories set aside and why, n = 1 506 files](../reports/figures/dataset_composition.png)
