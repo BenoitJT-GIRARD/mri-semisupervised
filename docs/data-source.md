@@ -2,10 +2,10 @@
 
 ## The archive
 
-A fixed archive of brain MRI slices, `mri_dataset_brain_cancer_oc.zip`, 34.6 MB, received on
-2026-05-10 as the material of a study brief. It has no public download page and no upstream
-URL: the file is handed over with that material, and this page is the only provenance record
-there is.
+The images come as a fixed archive of brain MRI slices, `mri_dataset_brain_cancer_oc.zip`,
+34.6 MB, received on 2026-05-10 as the material of a study brief. It has no public download
+page and no upstream URL: the file is handed over with that material, and this page is the
+only provenance record there is.
 
 The note shipped inside it announces 1 500 images, 1 400 of them unlabelled. The folders hold
 1 506 files, 1 406 of them unlabelled. Nothing in the archive explains the six extra, and
@@ -22,14 +22,14 @@ they are counted here as they are found.
 | Dataset fingerprint | `8f22a69ffa46ca1f` |
 
 The fingerprint is the SHA-256 of the sorted content identities, truncated to sixteen
-characters. Every run manifest under `reports/experiments/` carries it, which is what lets
-someone holding the same archive confirm they are looking at the same images.
+characters. Every run manifest under `reports/experiments/` carries it, so someone holding the
+same archive can confirm they are looking at the same images.
 
 ## What the inventory finds
 
 `scripts/build_manifest.py` identifies every file by the SHA-256 of its **decoded pixels**,
-so a re-encoded copy of a scan lands on the identity of the original. The counts below are
-what that identity turns up, and they are the reason the protocol looks the way it does:
+so a re-encoded copy of a scan lands on the identity of the original. The counts that identity
+turns up are the reason the protocol looks the way it does:
 
 <!-- source: ../reports/dataset_summary.json -->
 | | |
@@ -64,9 +64,8 @@ removing it from the evaluation would be choosing the test set after having look
 > mean little; what the picture supports is the local grouping. The two labelled classes occupy
 > different regions and the grey pool spreads across both.
 
-The embeddings are what the clustering works in, and the projection above is what a reader
-can check without holding a single scan: the two classes sit in different regions, the pool
-covers both, and no image is redistributed to show it.
+The clustering works in this embedding space, and the projection above lets a reader check
+its structure without holding a single scan, with no image redistributed to show it.
 
 ## The other input: the pretrained weights
 
@@ -95,7 +94,7 @@ the plots; it is generated on demand now, ignored by git, and purged from the hi
 
 ## Personal data
 
-The slices carry no identifier of any kind — no patient, no study, no acquisition date, and
+The slices carry no identifier of any kind: no patient, no study, no acquisition date, and
 no DICOM header. That also means the first thing a medical dataset needs, grouping folds by
 patient, cannot be checked here: two slices of the same person would be treated as two
 independent images and nothing in the archive would say otherwise. It is a limitation of the

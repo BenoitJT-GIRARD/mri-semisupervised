@@ -13,7 +13,7 @@ src/mri_semisupervised/
 └── protocol/     everything that touches a label
 ```
 
-The split between `models/` and `protocol/` is the one that matters. A clustering call and a
+The split that matters most is between `models/` and `protocol/`. A clustering call and a
 decision about which clustering to trust used to sit in the same module, which is how a leak
 came to look like an ordinary line of code. Everything that reads a label now lives under
 `protocol/`, where a reviewer can find it: the splits, the pseudo-labels, the arms, the
@@ -33,10 +33,10 @@ downstream. Equalisation gets its own cache file for the same reason.
 
 ## The classifier is small on purpose
 
-A ResNet18, fine-tuned from ImageNet weights, with a shared starting point across every arm
-and an identical number of gradient steps. It is the part of the system that matters least:
-what is under test is the pre-training, so the classifier is held constant everywhere and
-chosen small enough that 25 folds × 8 arms fit in an evening on one consumer GPU.
+The classifier is a ResNet18, fine-tuned from ImageNet weights, with a shared starting point
+across every arm and an identical number of gradient steps. It is the part of the system that
+matters least: what is under test is the pre-training, so the classifier is held constant
+everywhere and chosen small enough that 25 folds × 8 arms fit in an evening on one consumer GPU.
 
 ## Two PyTorch indexes, and why
 
@@ -57,16 +57,15 @@ from a clean kernel so the stored outputs are the capture of one execution.
 
 **No self-supervised pre-training on the pool.** SimCLR or a masked autoencoder over 1 300
 unlabelled slices is the approach with a real claim on this data, and it is out of scope
-here: the question asked is whether *clustering-derived* pseudo-labels pay, and answering a
-different question would not answer that one.
+here because the question asked is whether *clustering-derived* pseudo-labels pay.
 
-**No recalibration.** The probability scale is measurably off, and it stays off. Twenty
+**No recalibration.** The probability scale is measurably off and is left uncorrected. Twenty
 labelled images per fold is far too little for a Platt or an isotonic map to fit anything
 but its own noise, so the size of the gap is published as it stands.
 
 **No histogram equalisation by default.** It buys 1.3 points of supervised AUC and destroys
 the structure the clustering was finding, which is the object under study. Both runs are
-published; the reader decides.
+published, and the reader can choose between them.
 
 **No patient-level grouping.** The archive carries no identifier of any kind, so the folds
 group by image and nothing can be done about it. [`data-source.md`](data-source.md) says what

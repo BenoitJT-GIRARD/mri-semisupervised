@@ -29,11 +29,11 @@ few real labels.
 The question is easy to ask and hard to answer honestly, because the experiment that tests it
 has three ways of answering yes when it should say no. The pseudo-labels can be built using
 the test labels. The evaluation images can appear in the pool. And the semi-supervised arm
-can simply take more gradient steps than the arm it is compared to, which measures budget and
-calls it method. Each of those turns nothing into a real effect, and none of them looks
-unusual in the code.
+can take more gradient steps than the arm it is compared to, which measures budget and calls
+it method. Each of those turns nothing into a real effect, and none of them looks unusual in
+the code.
 
-So the object here is not the model. It is a protocol whose negative answer can be believed,
+So the object here is not the model but a protocol whose negative answer can be believed,
 together with the evidence that it would have said yes had there been anything to say yes to.
 
 ## What it does
@@ -93,9 +93,9 @@ interval clears zero, and the ordering holds at every budget and under every var
 
 > **How to read it.** Three panels, one per metric, and every row is one comparison between two
 > arms. A dot is one of the twenty-five shared folds; the interval is a 95 % bootstrap on their
-> mean. The vertical zero line is what decides: an interval crossing it leaves the two arms of
-> that row indistinguishable on this dataset. Comparing fold by fold, and never through the
-> averages alone, removes the split itself as a source of difference.
+> mean. An interval that crosses the vertical zero line leaves the two arms of that row
+> indistinguishable on this dataset. Because the comparison is made fold by fold, the split
+> itself drops out as a source of difference.
 
 <!-- source: reports/figures/MANIFEST.json -->
 ![The same four arms as bars on four metrics, ROC AUC, PR AUC, recall on the cancer class and macro F1, with one standard deviation across the 25 folds, n = 99 evaluation images](reports/figures/arms_comparison.png)
@@ -119,7 +119,8 @@ are calibrated differently.
 
 > **How to read it.** Two hypotheses about the pseudo-labels, each tested at two label budgets.
 > Every row sets an arm against its own control, which saw the same images with the labels
-> shuffled, so what survives is what the labels carried and never what extra images carried.
+> shuffled, so a difference that survives comes from the labels, the extra images being common
+> to both.
 > Dots are folds, the interval is a 95 % bootstrap, and only a row whose interval clears zero
 > supports a mechanism.
 
@@ -129,7 +130,7 @@ at 59 training labels, over n = 99 evaluation images.
 
 <!-- source: reports/experiments/mechanisms.csv -->
 At 10 labels the same comparison gives **+0.113 [+0.050, +0.180], p = 0.002**, over the same
-n = 99 images. The clustering is finding something real, and something a shuffle destroys.
+n = 99 images. The clustering finds structure that shuffling the labels destroys.
 Self-training does not: both its intervals span zero.
 
 Against the baseline the same arms still lose, by 0.010 and 0.016, neither significant. So the
@@ -141,8 +142,8 @@ information, and injecting it costs more than it is worth.
 same n = 99 evaluation images, the joint control sits at 0.811, against 0.922 at 59 labels:
 training on shuffled labels at every step is catastrophic, far worse than not pre-training at
 all. The +0.113 measures how much damage the shuffle does, not how much the real labels add.
-Read against its control the arm looks like a win; read against the baseline it is behind.
-Which is why both readings are published.
+Read against its control the arm looks like a win and against the baseline it is behind, so
+both readings are published.
 
 ### The curve, and what it rules out
 
@@ -184,7 +185,7 @@ n = 99 evaluation images.
 
 <!-- source: reports/experiments/equalized/summary.md -->
 Paired over the 25 folds the two runs share, that is **+0.013 [+0.003, +0.024], p = 0.006**
-over n = 99 images — the only comparison in this repository that clears conventional
+over n = 99 images, the only comparison in this repository that clears conventional
 significance. Equalisation also collapses the clustering's agreement with the labels, from an
 ARI of 0.457 ± 0.096 to 0.205 ± 0.179. Remove the global intensity differences and the
 structure the clustering was finding goes with them: on this dataset contrast happens to
@@ -215,13 +216,13 @@ would have to annotate before the semi-supervised question even arises.
 Brier score of 0.104 and an expected calibration error of 0.101, for a mean predicted score of
 0.407 against a base rate of 0.505. At a predicted 0.18 the observed cancer rate is 0.46; at
 0.44 it is 0.67; at 0.63 it is 0.86. Mid-range scores understate risk by twenty points or
-more. The scale is published as the network returns it: a calibrator fitted on twenty
+more. The scale is published as the network returns it, because a calibrator fitted on twenty
 images per fold would mostly fit noise, and the size of the gap is the finding.
 
 **The errors sit on the duplicates.** The 31 evaluation images that also live in the pool are
 misclassified 0.155 of the time, against 0.068 for the other 68. The gap holds for the
 supervised arm, which never sees the pool, so this is not contamination: those images are
-simply harder, and being filed twice in the source folders correlates with being difficult.
+harder, and being filed twice in the source folders correlates with being difficult.
 
 **A sensitivity-first operating point does not transport.** Fixing a 90 % recall floor on ten
 validation positives yields 82.0 % realised recall on the test fold and misses the floor on 51
@@ -232,10 +233,10 @@ one realised are in `reports/experiments/corrected/per_fold.parquet`, fold by fo
 
 ## Why these numbers can be believed
 
-Four guarantees hold the result up, and each one is asserted by a test rather than promised:
-identity comes from the pixels and not the path, every decision stays inside its training
-fold, every treatment has a control that sees the same images with shuffled labels, and the
-checkpoint and threshold are chosen on an inner split that never overlaps the test fold.
+Four guarantees hold the result up, and a test asserts each one: identity comes from the
+pixels and not the path, every decision stays inside its training fold, every treatment has a
+control that sees the same images with shuffled labels, and the checkpoint and threshold are
+chosen on an inner split that never overlaps the test fold.
 [`docs/protocol.md`](docs/protocol.md) lists them with the nine tests that watch them,
 including the one that requires the old protocol to leak.
 
@@ -267,16 +268,16 @@ flowchart TB
 > leak flattered. The interval is a 95 % bootstrap on that mean difference. Both runs meet
 > identical splits, which is what makes the price of the defects a measurement.
 
-Because the same machinery produced a positive answer before. Three leaks and a confound,
-reproduced in `reports/experiments/legacy/` on identical folds, so their price is measured
-instead of asserted: a third of the evaluation set sat in the training pool, the clustering
-method and its alignment were chosen over all 100 labels outside the folds, the comparison
-gave the semi-supervised arm more gradient steps than its baseline, and the gain it reported
-was a threshold move. The four are told in full in
+The same machinery once produced a positive answer. Its three leaks and its confound are
+reproduced in `reports/experiments/legacy/` on identical folds, so their price is measured: a
+third of the evaluation set sat in the training pool, the clustering method and its alignment
+were chosen over all 100 labels outside the folds, the comparison gave the semi-supervised arm
+more gradient steps than its baseline, and the gain it reported was a threshold move. The four
+are told in full in
 [`docs/protocol.md`](docs/protocol.md#what-the-earlier-version-got-wrong).
 
-That the errors concentrate on the duplicated images makes the first leak worse than it looks:
-what leaked was not a random sample, it was precisely the cases the model gets wrong.
+The errors concentrate on the duplicated images, which makes the first leak worse than it
+looks: the images that leaked into the pool were the ones the model finds hardest.
 
 ## Running it
 
@@ -297,8 +298,8 @@ holding a `cancer/` and a `normal/` folder and `unlabelled/` holding the rest.
 synchronised drive starves the GPU. The other modes, the budgets and the mechanism arms are in
 [`docs/protocol.md`](docs/protocol.md#reproducing-a-run).
 
-Tests: `uv run python -m pytest` — 180 tests in three tiers, coverage measured on every run
-with a floor.
+Tests: `uv run python -m pytest` runs 180 tests in three tiers, and every run measures
+coverage against a floor.
 
 ## Structure
 
@@ -317,8 +318,8 @@ tests/            unit, integration and system tiers
 Why the code is split that way, and what was deliberately left out, is in
 [`docs/architecture.md`](docs/architecture.md).
 
-The notebooks are the laboratory, one per question, generated by
-`scripts/build_notebooks.py` and executed by `scripts/run_notebooks.py` so that their stored
+There is one notebook per question, generated by
+`scripts/build_notebooks.py` and executed by `scripts/run_notebooks.py` so that the stored
 outputs are the capture of one run: [the dataset and what hashing it
 revealed](notebooks/01_dataset.ipynb), [what the embeddings
 hold](notebooks/02_embeddings_and_clustering.ipynb), [the protocol and its
@@ -337,7 +338,7 @@ a real claim on 1 300 unlabelled images.
 <!-- source: reports/dataset_summary.json -->
 **Anything at n = 99 evaluation images.** Twenty per fold; one image moves recall by 0.05. Every interval
 above is wide because the data is small, and no protocol fixes that. The headroom measurement
-above is what makes the limit explicit.
+above makes the limit explicit.
 
 **Generalisation beyond this dataset.** One source, one modality, 512 × 512 slices, and no
 patient identifiers, so folds cannot be grouped by patient. That is a property of the archive,
