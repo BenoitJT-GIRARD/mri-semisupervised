@@ -48,7 +48,7 @@ file ahead of time and cannot probe the hardware.
 
 ## The notebooks are generated
 
-`scripts/build_notebooks.py` writes both `.ipynb` files. The cell text is versioned and
+`scripts/build_notebooks.py` writes all five `.ipynb` files. The cell text is versioned and
 diffable as Python instead of being buried in JSON, the imports cannot drift away from the
 package because they are written against it, and `scripts/run_notebooks.py` replays them
 from a clean kernel so the stored outputs are the capture of one execution.

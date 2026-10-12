@@ -67,9 +67,11 @@ within one of the two.
 
 ## What the earlier version got wrong
 
-The same machinery produced a positive answer before. `reports/experiments/legacy/`
-reproduces that version: three leaks and nothing else, on identical folds, so the difference
-between the two runs puts a price on them.
+The same machinery produced a positive answer before, and the four paragraphs below say what was
+wrong with it. The first two describe three leaks, the method and the alignment each having been
+chosen on test labels, and `reports/experiments/legacy/` reproduces those leaks and nothing
+else, on identical folds, so the difference between the two runs puts a price on them. The
+budget confound and the threshold move are not re-run.
 
 **A third of the evaluation set was in the training pool.** The image identity hashed the
 path, so one scan filed twice became two images, and the guard meant to keep labelled images

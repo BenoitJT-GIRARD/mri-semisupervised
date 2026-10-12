@@ -51,12 +51,12 @@ and the nine tests that assert the protocol cannot leak are in
 
 Images are embedded once by a frozen **ResNet50** from **torchvision**, cached as **Parquet**
 and guarded against a cache built with other preprocessing. Inside each training fold,
-**scikit-learn** fits KMeans, Agglomerative-ward, GMM and DBSCAN, and the fold picks between
-them on its own data; agglomerative clustering wins 24 folds out of 25. The chosen clustering
-becomes pseudo-labels, a **PyTorch** ResNet18 pre-trains on them and is then fine-tuned on
-the fold's real labels, with the checkpoint and the threshold decided on an inner validation
-split. Intervals are bootstrap over images, comparisons are paired across folds, and Holm
-corrects the families.
+**scikit-learn** fits KMeans, Agglomerative-ward, Agglomerative-average, GMM and DBSCAN, and the
+fold picks between them on its own data; agglomerative clustering wins 24 folds out of 25. The
+chosen clustering becomes pseudo-labels, a **PyTorch** ResNet18 pre-trains on them and is then
+fine-tuned on the fold's real labels, with the checkpoint and the threshold decided on an inner
+validation split. Intervals are bootstrap over images, comparisons are paired across folds, and
+Holm corrects the families.
 
 Around the code: **uv** for a locked environment on two PyTorch indexes, **Ruff** and
 **Bandit** on each run, and **pytest** in three tiers whose system tier trains a real
@@ -85,8 +85,10 @@ network end to end on a synthetic dataset.
 Each row is the mean of 25 fold values at 59 training labels, with their standard deviation
 beside it. What each column measures is in [`metrics.yaml`](metrics.yaml).
 
-Every arm that touches the unlabelled pool sits below the baseline that ignores it. No
-interval clears zero, and the ordering holds at every budget and under every variant.
+Every arm that touches the unlabelled pool sits below the baseline that ignores it, and no
+interval in this run clears zero. No arm beats the baseline at any budget or under any variant:
+at 10 labels the semi-supervised arm ties it, and under histogram equalisation two arms fall
+below it by more than their interval.
 
 <!-- source: reports/figures/MANIFEST.json -->
 ![Paired differences between arms across the 25 shared folds, each with its 95 % bootstrap interval, on one shared scale centred on zero, n = 99 evaluation images](reports/figures/paired_differences.png)
@@ -168,7 +170,7 @@ both readings are published.
 > mean across folds, the third is its distance from its own control with the range that distance
 > plausibly occupies, and `paired p` is the chance of a gap this large if the two were equal. A
 > bracket containing zero and a p above 0.05 say the same thing twice.
-The first column is the semi-supervised arm; its baseline reads 0.941, 0.952, 0.957 and 0.966
+The second column is the semi-supervised arm; its baseline reads 0.941, 0.952, 0.957 and 0.966
 at the same four budgets. Intervals are 95 % bootstrap on the paired difference, over 25
 folds.
 
@@ -185,12 +187,13 @@ n = 99 evaluation images.
 
 <!-- source: reports/experiments/equalized/summary.md -->
 Paired over the 25 folds the two runs share, that is **+0.013 [+0.003, +0.024], p = 0.006**
-over n = 99 images, the only comparison in this repository that clears conventional
-significance. Equalisation also collapses the clustering's agreement with the labels, from an
-ARI of 0.457 ± 0.096 to 0.205 ± 0.179. Remove the global intensity differences and the
-structure the clustering was finding goes with them: on this dataset contrast happens to
-correlate with the class, and it is not what a radiologist would be looking at. Equalisation
-stays off by default, and [`docs/architecture.md`](docs/architecture.md) says why.
+over n = 99 images, the only improvement on the plain supervised baseline in this repository
+that clears conventional significance. Equalisation also collapses the clustering's agreement
+with the labels, from an ARI of 0.457 ± 0.096 to 0.205 ± 0.179. Remove the global intensity
+differences and the structure the clustering was finding goes with them: on this dataset
+contrast happens to correlate with the class, and it is not what a radiologist would be looking
+at. Equalisation stays off by default, and [`docs/architecture.md`](docs/architecture.md) says
+why.
 
 **And the task is nearly saturated.** The supervised baseline reaches 0.966 with 8 of its 25
 folds at exactly 1.000. That leaves 0.034 of headroom against a fold-to-fold standard
@@ -249,7 +252,7 @@ flowchart TB
     subgraph TRAIN["Training fold: every decision is taken in here"]
         direction LR
         EMB["Frozen ResNet50<br/>embeddings"]
-        PICK["Four clusterings fitted,<br/>one chosen on the fold's own data"]
+        PICK["Five clusterings fitted,<br/>one chosen on the fold's own data"]
         NET["ResNet18 pre-trained on pseudo-labels,<br/>fine-tuned on 59 real ones"]
         INNER["Inner split picks the<br/>checkpoint and the threshold"]
         EMB --> PICK --> NET --> INNER
@@ -268,12 +271,12 @@ flowchart TB
 > leak flattered. The interval is a 95 % bootstrap on that mean difference. Both runs meet
 > identical splits, which is what makes the price of the defects a measurement.
 
-The same machinery once produced a positive answer. Its three leaks and its confound are
-reproduced in `reports/experiments/legacy/` on identical folds, so their price is measured: a
-third of the evaluation set sat in the training pool, the clustering method and its alignment
-were chosen over all 100 labels outside the folds, the comparison gave the semi-supervised arm
-more gradient steps than its baseline, and the gain it reported was a threshold move. The four
-are told in full in
+The same machinery once produced a positive answer, and four things were wrong with it: a third
+of the evaluation set sat in the training pool, the clustering method and its alignment were
+chosen over all 100 labels outside the folds, the comparison gave the semi-supervised arm more
+gradient steps than its baseline, and the gain it reported was a threshold move. The first two
+are the three leaks, and `reports/experiments/legacy/` reproduces them on identical folds, so
+their price is measured. The four are told in full in
 [`docs/protocol.md`](docs/protocol.md#what-the-earlier-version-got-wrong).
 
 The errors concentrate on the duplicated images, which makes the first leak worse than it
@@ -329,11 +332,12 @@ is worth](notebooks/05_calibration_errors_and_leaks.ipynb).
 
 ## What this does not prove
 
-**That semi-supervised learning cannot help here.** Six variants were tried and none beat the
-baseline, which is a much stronger statement than one variant would support, and it is still
-about clustering-derived and self-derived pseudo-labels over ImageNet embeddings.
-Self-supervised pre-training on the pool itself was not tried, and it is the one approach with
-a real claim on 1 300 unlabelled images.
+**That semi-supervised learning cannot help here.** Four variants were tried, several of them at
+more than one label budget or under histogram equalisation, and none beat the baseline, which is
+a much stronger statement than one variant would support, and it is still about
+clustering-derived and self-derived pseudo-labels over ImageNet embeddings. Self-supervised
+pre-training on the pool itself was not tried, and it is the one approach with a real claim
+on 1 300 unlabelled images.
 
 <!-- source: reports/dataset_summary.json -->
 **Anything at n = 99 evaluation images.** Twenty per fold; one image moves recall by 0.05. Every interval
