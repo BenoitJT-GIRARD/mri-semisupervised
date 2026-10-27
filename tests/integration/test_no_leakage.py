@@ -235,8 +235,9 @@ def test_the_pretraining_set_is_identical_for_the_semi_arm_and_its_control(
     for fold, arms in by_fold.items():
         assert arms["semi_supervised"] == arms["permuted_control"], f"fold {fold}"
         assert arms["supervised"] == [], "the baseline pre-trains on nothing"
-        # The filtered arm keeps a subset of the same images, never other ones.
-        assert set(arms["semi_supervised_confident"]) <= set(arms["semi_supervised"]), fold
+        # The filtered arm is handed the same set. It filters inside `run_arm`, which the
+        # spy replaces, so the subset it keeps is checked in tests/unit/protocol/test_arms.py.
+        assert arms["semi_supervised_confident"] == arms["semi_supervised"], f"fold {fold}"
 
 
 def test_every_evaluation_image_is_tested_once_per_repeat(wired, tmp_path: Path) -> None:

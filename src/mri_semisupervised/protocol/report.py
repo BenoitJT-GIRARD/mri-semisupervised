@@ -14,7 +14,7 @@ import pandas as pd
 from sklearn.metrics import average_precision_score, roc_auc_score
 
 from mri_semisupervised.config import EXPERIMENTS_DIR
-from mri_semisupervised.protocol.experiment import ExperimentResult
+from mri_semisupervised.protocol.experiment import LEGACY, ExperimentResult
 from mri_semisupervised.protocol.uncertainty import bootstrap_ci, paired_difference
 
 
@@ -53,9 +53,11 @@ def runs() -> list[Path]:
 
 HEADLINE = ("roc_auc", "pr_auc", "recall_positive", "f1_macro", "accuracy")
 
-#: The run every other run is a variant of: same folds, same seeds, no preprocessing change
-#: and the full label budget. A number that compares two runs has to live somewhere a reader
-#: can open, and the summary of the variant is where it belongs.
+#: The run every other run is a variant of: same splitting seeds, no preprocessing change and
+#: the full label budget. A variant that keeps its 99 evaluation images shares its folds; the
+#: legacy run keeps 100 labelled files, so its folds are paired with these by repeat and split
+#: only. A number that compares two runs has to live somewhere a reader can open, and the
+#: summary of the variant is where it belongs.
 REFERENCE = "corrected"
 
 
@@ -195,10 +197,16 @@ def summarise(result, n_bootstrap: int = 2000) -> str:
         shared_folds = here.index.intersection(there.index)
         shared_arms = [arm for arm in here.columns if arm in there.columns]
         if len(shared_folds) and shared_arms:
+            # The legacy run splits 100 labelled files, the reference 99 images: its folds
+            # carry the same names and seeds, and hold different test images.
+            pairing = (
+                f"over {len(shared_folds)} folds paired by repeat and split"
+                if result.mode == LEGACY
+                else f"paired over the {len(shared_folds)} shared folds"
+            )
             lines += [
                 "",
-                f"## Against the `{REFERENCE}` run, paired over the "
-                f"{len(shared_folds)} shared folds",
+                f"## Against the `{REFERENCE}` run, {pairing}",
                 "",
                 f"| arm | this run | {REFERENCE} | difference | 95% CI | p |",
                 "|---|---|---|---|---|---|",
@@ -220,6 +228,12 @@ def summarise(result, n_bootstrap: int = 2000) -> str:
         for name, count in chosen.items():
             lines.append(f"- `{name}`: {count} fold(s)")
         ari = result.folds_meta["pseudo_ari_on_train"]
-        lines.append(f"\nARI on the training labels: {ari.mean():.3f} ± {ari.std():.3f}")
+        # The legacy clustering is fitted once, before the folds, on every evaluation label.
+        scope = (
+            "every evaluation label, test folds included"
+            if result.mode == LEGACY
+            else "the training labels"
+        )
+        lines.append(f"\nARI on {scope}: {ari.mean():.3f} ± {ari.std():.3f}")
 
     return "\n".join(lines) + "\n"

@@ -37,9 +37,11 @@ def byte_id(path: Path) -> str:
 def content_id(path: Path) -> str:
     """SHA-256 of the decoded pixels, in a canonical form.
 
-    Greyscale and native size: a re-encoded copy, or the same scan saved by another tool,
-    lands on the same identifier as the original. That is what ``byte_id`` cannot do, and
-    it is the property the leak detection needs.
+    Greyscale and native size: a copy re-encoded without loss, or the same scan saved by
+    another tool, lands on the same identifier as the original as long as its decoded pixels
+    are identical. A lossy re-encoding changes the pixels, and with them the identifier. That
+    first property is what ``byte_id`` cannot offer, and it is the one the leak detection
+    needs.
     """
     with Image.open(path) as img:
         array = np.asarray(img.convert("L"))

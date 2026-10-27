@@ -124,8 +124,8 @@ def figure_roc(predictions: pd.DataFrame, meta: dict, path: Path) -> None:
 
     This is **not** the number the table publishes. The table averages the ROC AUC of each
     fold; this pools every out-of-fold score into one curve, which mixes folds calibrated
-    differently and lands a point or two lower. Both are honest; they answer different
-    questions, and the legend says which one is on screen.
+    differently and lands 0.003 to 0.021 lower for the four arms of the corrected run. Both
+    are honest; they answer different questions, and the legend says which one is on screen.
     """
     curves = {
         ARM_LABEL.get(arm, arm): (group["y_true"].to_numpy(), group["y_score"].to_numpy())
@@ -276,7 +276,7 @@ def figure_paired(per_fold: pd.DataFrame, meta: dict, path: Path) -> None:
 
 
 def figure_leak_price(
-    corrected: pd.DataFrame, legacy: pd.DataFrame, meta: dict, path: Path
+    corrected: pd.DataFrame, legacy: pd.DataFrame, meta: dict, legacy_meta: dict, path: Path
 ) -> None:
     """What the three leaks were worth, as the paired difference they are.
 
@@ -290,8 +290,10 @@ def figure_leak_price(
     rows = []
     for metric in metrics:
         for arm in arms:
-            # Joined on the fold, never zipped by position: the two runs share their splits,
-            # and a missing fold on one side would silently shift every pair by one.
+            # Joined on the fold, never zipped by position: the two runs name their folds by
+            # repeat and split, from the same splitting seeds, and a missing fold on one side
+            # would silently shift every pair by one. The test folds themselves differ, since
+            # the legacy run splits 100 labelled files and the corrected run 99 images.
             pair = legacy.loc[legacy["arm"] == arm, ["fold", metric]].merge(
                 corrected.loc[corrected["arm"] == arm, ["fold", metric]],
                 on="fold",
@@ -318,11 +320,17 @@ def figure_leak_price(
         y_label="arm",
         n_bootstrap=int((meta.get("protocol") or {}).get("n_bootstrap", 0)),
     )
-    figure.suptitle("What the three leaks were worth: leaking minus corrected, same folds")
+    figure.suptitle(
+        "What the three leaks were worth: leaking minus corrected, folds paired by repeat and split"
+    )
     save_figure(
         figure,
         path,
-        n=_population(meta),
+        n={
+            "evaluation images, corrected run": int(meta.get("evaluation_images", 0)),
+            "labelled files, leaking run": int(legacy_meta.get("evaluation_images", 0)),
+            "paired folds": _folds(meta),
+        },
         dispersion="one point per fold; interval: 95 % bootstrap on the mean difference",
         source=SOURCE,
     )
@@ -708,7 +716,9 @@ def main() -> None:
 
     legacy_loaded = _load("legacy")
     if legacy_loaded is not None:
-        figure_leak_price(per_fold, legacy_loaded[0], meta, FIGURES_DIR / "leak_price.png")
+        figure_leak_price(
+            per_fold, legacy_loaded[0], meta, legacy_loaded[2], FIGURES_DIR / "leak_price.png"
+        )
 
     manifest_path = Path(MANIFEST_PATH)
     if manifest_path.exists():

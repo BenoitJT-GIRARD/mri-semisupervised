@@ -2,9 +2,10 @@
 
 Every other test in this suite replaces the training loop with a spy or a stub. This one runs
 `scripts/run_experiment.py` in its own process, over a synthetic dataset of twenty-four
-images, and then opens the four files a reader opens: the per-fold metrics, the raw
-predictions, the run manifest and the summary page. It is the only test that can catch a
-pipeline that computes correctly and publishes nothing.
+labelled and twenty unlabelled images plus one unreadable file, and then opens the four
+files a reader opens: the per-fold metrics, the raw predictions, the run manifest and the
+summary page. It is the only test that can catch a pipeline that computes correctly and
+publishes nothing.
 
 It is slow by construction, since a real ResNet18 takes real gradient steps, and it needs the
 ImageNet weights torchvision caches: it skips with the command that fetches them rather than
@@ -36,6 +37,14 @@ pytestmark = [pytest.mark.system, pytest.mark.slow]
 #: and the control it is read against. The pseudo-label arms need a pool large enough to
 #: cluster, which a twenty-image pool does not give.
 ARMS = ("supervised", "permuted_control")
+
+
+#: The command that puts the ResNet18 weights in the torchvision cache, the one the CI
+#: workflow runs before the suite.
+WARM_CACHE = (
+    'uv run python -c "from torchvision import models; '
+    'models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)"'
+)
 
 
 def _weights_are_cached() -> bool:
@@ -113,7 +122,7 @@ def _run(root: Path, *, arms: tuple[str, ...], out_name: str) -> None:
     assert done.returncode == 0, done.stdout[-2000:] + done.stderr[-2000:]
 
 
-@pytest.mark.skipif(not _weights_are_cached(), reason="run: uv run python scripts/warm_cache.py")
+@pytest.mark.skipif(not _weights_are_cached(), reason=f"run: {WARM_CACHE}")
 def test_a_whole_run_writes_the_files_every_figure_reads(prepared_run: Path) -> None:
     """The command the README gives, run as a command: a subprocess, its own environment."""
     _run(prepared_run, arms=ARMS, out_name="system-tier")
@@ -144,7 +153,7 @@ def test_a_whole_run_writes_the_files_every_figure_reads(prepared_run: Path) -> 
         assert arm in summary
 
 
-@pytest.mark.skipif(not _weights_are_cached(), reason="run: uv run python scripts/warm_cache.py")
+@pytest.mark.skipif(not _weights_are_cached(), reason=f"run: {WARM_CACHE}")
 def test_the_same_seed_gives_the_same_numbers(prepared_run: Path) -> None:
     """A protocol whose conclusions move between two identical runs concludes nothing."""
     for name in ("seed-a", "seed-b"):

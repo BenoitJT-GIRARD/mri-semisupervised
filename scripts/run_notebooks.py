@@ -3,9 +3,9 @@
 Outputs that no single execution produced make a notebook unreadable: the counters say 3, 7,
 12, the reader believes they are looking at one run, and the cells they are reading never saw
 each other. This script runs each notebook from a clean kernel, so the execution counters
-come out as 1..N and every output is from that one pass.
+come out as 1..N and all outputs come from a single run.
 
-    uv sync --group notebook
+    uv sync --extra dev                         # the dev extra installs the notebook kernel
     uv run python scripts/run_notebooks.py
     uv run python scripts/run_notebooks.py --check    # fail if a notebook is stale
 

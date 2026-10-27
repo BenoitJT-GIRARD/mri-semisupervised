@@ -108,6 +108,34 @@ def test_the_confident_arm_spends_the_same_budget_as_the_unfiltered_one(fold) ->
     assert confident.pretrain_steps == plain.pretrain_steps
 
 
+def test_the_confident_arm_pretrains_on_a_subset_of_the_semi_arm_images(fold) -> None:
+    """Filtering may drop pseudo-labels, and it may never bring in an image the semi arm lacks.
+
+    The only candidate quantile is 0.5, so the filter has to drop something: a subset equal
+    to the whole set would prove nothing about where the kept images come from.
+    """
+    from dataclasses import replace
+
+    paths_by_id, inner_train, inner_val, test, pseudo = fold
+    plain = _run(SEMI_SUPERVISED, fold)
+    confident = run_arm(
+        SEMI_SUPERVISED_CONFIDENT,
+        fold_name="f0",
+        paths_by_id=paths_by_id,
+        inner_train=inner_train,
+        inner_val=inner_val,
+        test=test,
+        pseudo=pseudo,
+        cfg=replace(TINY, confidence_quantiles=(0.5,)),
+        seed=0,
+    )
+
+    kept, available = set(confident.pretrain_image_ids), set(plain.pretrain_image_ids)
+    assert kept, "the filter kept nothing"
+    assert kept <= available, "the filtered arm pre-trained on an image the semi arm never saw"
+    assert kept != available, "the 0.5 quantile dropped nothing, so the check proves nothing"
+
+
 def test_the_control_pretrains_on_the_same_images_as_the_semi_arm(fold) -> None:
     plain = _run(SEMI_SUPERVISED, fold)
     control = _run(PERMUTED_CONTROL, fold)

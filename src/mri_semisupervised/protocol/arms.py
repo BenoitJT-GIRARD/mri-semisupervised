@@ -1,16 +1,24 @@
-"""The three arms, sharing folds, architecture and budget.
+"""The eight arms, sharing folds, architecture and budget.
+
+Four arms run by default:
 
 | arm | pre-training | fine-tuning | what it isolates |
 |---|---|---|---|
 | `supervised` | — | inner train | the reference |
 | `semi_supervised` | the fold's pseudo-labels | inner train | the supposed contribution |
+| `semi_supervised_confident` | pseudo-labels whose confidence clears a quantile picked on the inner validation, 0 included | inner train | whether noise was the problem |
 | `permuted_control` | the same images, labels shuffled | inner train | budget and exposure |
 
-The third arm is what makes the experiment conclusive. It sees exactly the same images,
-takes exactly the same number of gradient steps, and starts from the same weights; only the
-correspondence between an image and its pseudo-label is destroyed. If `semi_supervised`
-cannot beat it, then what helped was exposure to the images and not the information the
-clustering found — and that has to be said.
+The four others are opt-in (``OPTIONAL_ARMS``): `semi_supervised_joint` and
+`joint_permuted_control` add the pseudo-label loss at every fine-tuning step, and
+`self_training` and `self_training_control` pre-train on the confident predictions of a first
+supervised pass. Each of the two treatments is read against its own control.
+
+The permuted control is what makes the experiment conclusive. It sees exactly the same images,
+takes exactly the same number of gradient steps, and starts from the same ImageNet backbone;
+only the correspondence between an image and its pseudo-label is destroyed. If
+`semi_supervised` cannot beat it, then what helped was exposure to the images and not the
+information the clustering found — and that has to be said.
 
 Checkpoints and stopping are decided on the **inner validation split**, carved out of the
 training fold. The previous code kept the epoch with the best *training* accuracy, which on
@@ -54,7 +62,8 @@ PERMUTED_CONTROL = "permuted_control"
 SEMI_SUPERVISED_JOINT = "semi_supervised_joint"
 JOINT_PERMUTED_CONTROL = "joint_permuted_control"
 #: Pseudo-labels taken from the decision function being optimised, and not from a
-#: k-means on ImageNet embeddings. The clustering reaches an ARI of 0.46 against the
+#: clustering of ImageNet embeddings (agglomerative with ward linkage in 24 of the 25 folds
+#: of the corrected run). The clustering reaches an ARI of 0.46 against the
 #: training labels, so its clusters and the classes only half agree; a first supervised
 #: pass has at least been asked the right question.
 SELF_TRAINING = "self_training"
@@ -179,8 +188,8 @@ def _predict(model, loader, dev) -> tuple[np.ndarray, np.ndarray]:
 def _validation_score(y_true: np.ndarray, y_score: np.ndarray) -> float:
     """Rank the epochs on the inner validation.
 
-    ROC AUC, and not accuracy: on sixteen validation images, accuracy moves in steps of
-    0.0625 and ties constantly, which turns model selection into a coin toss.
+    ROC AUC, and not accuracy: on twenty validation images, accuracy moves in steps of
+    0.05 and ties constantly, which turns model selection into a coin toss.
     """
     from sklearn.metrics import roc_auc_score
 
@@ -310,8 +319,8 @@ def _finetune(
     """Train on the labels, keeping the epoch that scores best on the inner validation.
 
     Returns the number of steps taken and the epoch kept. The checkpoint criterion is the
-    validation ROC AUC, never the training accuracy: on sixteen validation images accuracy
-    moves in steps of 0.0625 and ties constantly, which turns selection into a coin toss.
+    validation ROC AUC, never the training accuracy: on twenty validation images accuracy
+    moves in steps of 0.05 and ties constantly, which turns selection into a coin toss.
 
     ``pseudo_loader`` switches the epoch to the joint form. ``warm_start`` lowers the
     learning rate for a model that has already been pre-trained.
@@ -397,8 +406,9 @@ def run_arm(
     )
 
     def fresh_model() -> nn.Module:
-        # Same seed for every arm and every candidate: the starting weights are shared, so
-        # a difference between arms cannot come from where they started.
+        # One seed for every model this call builds, so the candidates of the filtered arm
+        # start from identical weights. Across arms the backbone is the same ImageNet one,
+        # and the new output layer follows the seed `run_experiment` derives for each arm.
         torch.manual_seed(seed)
         return build_classifier(cfg.architecture, cfg.num_classes).to(dev)
 
@@ -425,7 +435,7 @@ def run_arm(
     if arm in SELF_TRAINING_ARMS:
         # A first supervised pass, then its own confident predictions on the pool as
         # pseudo-labels, then a pre-training on those. The labels come from the decision
-        # function actually being optimised, where the other arms read a k-means on
+        # function actually being optimised, where the other arms read a clustering whose
         # dominant structure turned out to be acquisition contrast.
         scout = fresh_model()
         _finetune(scout, train_loader, val_loader, cfg, dev, history=history, phase="scout")

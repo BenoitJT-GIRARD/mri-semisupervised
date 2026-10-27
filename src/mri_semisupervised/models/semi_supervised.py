@@ -1,4 +1,4 @@
-"""The classifier the three arms share.
+"""The classifier every arm shares.
 
 This module used to hold the training loops and the cross-validation as well. They now
 live in :mod:`mri_semisupervised.protocol`, because deciding what a step may look at is

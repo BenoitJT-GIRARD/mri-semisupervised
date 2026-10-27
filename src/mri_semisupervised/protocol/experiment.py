@@ -1,11 +1,12 @@
 """Run the whole comparison, and leave behind enough to check it.
 
-Two modes, and the second one exists so that the before/after is **measured** and not
+Three modes. The second one exists so that the before/after is **measured** and not
 quoted from an old JSON file:
 
 * ``corrected`` — the protocol this package now defends. Duplicates removed by content,
-  pseudo-labels fitted inside each training fold, three arms, checkpoint and threshold
-  chosen on an inner validation split.
+  pseudo-labels fitted inside each training fold, four arms by default and the four opt-in
+  arms when ``ProtocolConfig.arms`` names them, checkpoint and threshold chosen on an inner
+  validation split.
 * ``legacy`` — **the three leaks, and only those**: duplicates left in place, the
   clustering method and the cluster-to-class alignment decided once over every label
   including the test folds. Everything else — the inner validation split, the checkpoint,
@@ -14,6 +15,8 @@ quoted from an old JSON file:
   That is deliberate, and it is narrower than "reproduce the original". It isolates what
   the *leaks* were worth from what the *training changes* were worth. Running the original
   end to end would confound the two, and the question here is the leaks.
+* ``equalized`` — the corrected protocol with histogram equalisation in both transforms,
+  read from its own feature cache.
 
 Every run writes a manifest naming its data, its seeds, its versions and its git revision.
 A number that cannot be traced back to one of those does not belong in the README.

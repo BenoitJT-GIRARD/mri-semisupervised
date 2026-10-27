@@ -115,11 +115,11 @@
       ],
       "dispersion": "one point per fold; interval: 95 % bootstrap on the mean difference",
       "dpi": 200,
-      "n": "n(evaluation images) = 99, n(folds) = 25",
-      "sha256": "6a2b69d98f1ecf71751f9c5e40b1840b09e778c27d83af1ebaf1f8f02d0faee6",
+      "n": "n(evaluation images, corrected run) = 99, n(labelled files, leaking run) = 100, n(paired folds) = 25",
+      "sha256": "f8cdaf08e9da6b06b141200e3a758e833cb38cc427c35cecc6bd813c80ee2017",
       "source": "scripts/build_figures.py",
       "style_version": 1,
-      "written": "2026-10-10"
+      "written": "2026-10-27"
     },
     "mechanisms.png": {
       "axes": [

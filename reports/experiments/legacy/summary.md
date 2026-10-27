@@ -36,7 +36,7 @@ Protocol: **legacy**
 | supervised vs permuted_control | recall_positive | +0.000 | [-0.028, +0.032] | 0.978 |
 | semi_supervised vs permuted_control | recall_positive | -0.048 | [-0.104, +0.008] | 0.091 |
 
-## Against the `corrected` run, paired over the 25 shared folds
+## Against the `corrected` run, over 25 folds paired by repeat and split
 
 | arm | this run | corrected | difference | 95% CI | p |
 |---|---|---|---|---|---|
@@ -48,4 +48,4 @@ Protocol: **legacy**
 
 - `Agglomerative(ward)`: 25 fold(s)
 
-ARI on the training labels: 0.481 ± 0.000
+ARI on every evaluation label, test folds included: 0.481 ± 0.000

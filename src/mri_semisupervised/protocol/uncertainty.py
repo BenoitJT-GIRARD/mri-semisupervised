@@ -1,7 +1,7 @@
 """Intervals and paired comparisons.
 
-With ninety-nine evaluation images and folds of twenty, a recall that moves by 0.05 has
-moved by one image. Publishing a point estimate for a difference that size is not a
+With ninety-nine evaluation images and test folds of 19 or 20, an accuracy that moves by
+0.05 has moved by one image, and so has a recall that moves by 0.10. Publishing a point estimate for a difference that size is not a
 simplification, it is a claim the data cannot support. So the uncertainty is not an
 appendix here: it is the result.
 
@@ -110,8 +110,8 @@ def holm_correction(p_values: dict[str, float], alpha: float = 0.05) -> pd.DataF
 
     Holm rather than plain Bonferroni because it is uniformly more powerful at the same
     guarantee, and because it makes the ordering visible: sort ascending, compare the k-th
-    smallest to ``alpha / (m - k)``, and stop at the first that fails — everything after it
-    is rejected too, whatever its raw value.
+    smallest to ``alpha / (m - k)``, and stop at the first that fails — no comparison after
+    it is declared significant either, whatever its raw value.
 
     Returns one row per comparison with its raw p, its threshold and its verdict, so the
     table can go in the README as it stands. A family with nothing significant produces a

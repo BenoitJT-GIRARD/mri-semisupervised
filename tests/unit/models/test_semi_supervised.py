@@ -17,7 +17,7 @@ def test_the_head_is_replaced_and_the_output_has_the_right_width() -> None:
 
 
 def test_the_backbone_stays_trainable() -> None:
-    # Freezing it would put the same bottleneck under all three arms and hide the
+    # Freezing it would put the same bottleneck under every arm and hide the
     # comparison behind it.
     model = build_classifier("resnet18")
     assert all(p.requires_grad for p in model.parameters())

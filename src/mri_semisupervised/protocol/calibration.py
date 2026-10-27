@@ -6,10 +6,10 @@ them says anything about the **scale**: a score of 0.90 is not a claim that the 
 is what makes a threshold transportable or not.
 
 Everything here reads the out-of-fold predictions that are already on disk. Nothing is
-retrained, and nothing is recalibrated: a network fine-tuned on twenty images per fold has
-little chance of being calibrated, and measuring that and saying so *is* the result.
-Recalibrating on this little data would add a layer of estimation noisier than the thing
-it corrects.
+retrained, and nothing is recalibrated: a network fine-tuned on 59 or 60 images per fold
+has little chance of being calibrated, and measuring that and saying so *is* the result.
+Recalibrating on the twenty inner validation images of a fold would add a layer of
+estimation noisier than the thing it corrects.
 """
 
 from __future__ import annotations

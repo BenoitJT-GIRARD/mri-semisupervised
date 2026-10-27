@@ -104,6 +104,35 @@ def test_a_run_without_fold_metadata_still_renders(run_directory: Path) -> None:
     assert "Clustering method chosen" not in summarise(result, n_bootstrap=20)
 
 
+def _write_folds(directory: Path, ari: float) -> None:
+    pd.DataFrame(
+        {
+            "fold": [0, 1, 2, 3],
+            "pseudo_method": ["Agglomerative(ward)"] * 4,
+            "pseudo_ari_on_train": [ari] * 4,
+        }
+    ).to_parquet(directory / "folds.parquet", index=False)
+
+
+def test_the_ari_line_names_the_labels_it_was_computed_on(tmp_path: Path) -> None:
+    """The legacy clustering is fitted once over every evaluation label, test folds included.
+
+    Its ARI is therefore not an ARI on the training labels, and the page must not call it
+    one. The corrected run computes it inside each fold, on that fold's training labels.
+    """
+    _write_run(tmp_path / "corrected")
+    _write_folds(tmp_path / "corrected", 0.4)
+    _write_run(tmp_path / "legacy", mode="legacy")
+    _write_folds(tmp_path / "legacy", 0.5)
+
+    corrected = summarise(load_result(tmp_path / "corrected"), n_bootstrap=20)
+    legacy = summarise(load_result(tmp_path / "legacy"), n_bootstrap=20)
+
+    assert "ARI on the training labels: 0.400" in corrected
+    assert "training labels" not in legacy
+    assert "ARI on every evaluation label, test folds included: 0.500" in legacy
+
+
 def test_the_published_runs_are_the_ones_on_disk() -> None:
     names = {directory.name for directory in runs()}
 
@@ -124,6 +153,21 @@ def test_a_variant_run_is_compared_to_the_reference_fold_by_fold(tmp_path: Path)
 
     assert "Against the `corrected` run, paired over the 4 shared folds" in page
     assert "| supervised | 0.900 | 0.900 | +0.000 |" in page
+
+
+def test_the_legacy_run_is_paired_by_fold_name_and_says_so(tmp_path: Path) -> None:
+    """The legacy run splits 100 labelled files and the reference 99 images.
+
+    Its folds carry the same repeat and split as the reference ones, and their test images
+    differ, so the page must not call them shared.
+    """
+    _write_run(tmp_path / "corrected")
+    _write_run(tmp_path / "legacy", mode="legacy")
+
+    page = summarise(load_result(tmp_path / "legacy"), n_bootstrap=20)
+
+    assert "Against the `corrected` run, over 4 folds paired by repeat and split" in page
+    assert "paired over the 4 shared folds" not in page
 
 
 def test_the_reference_run_is_not_compared_to_itself(run_directory: Path) -> None:

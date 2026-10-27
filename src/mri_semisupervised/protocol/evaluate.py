@@ -69,7 +69,7 @@ def threshold_at_sensitivity(
     comparison between arms, where symmetry is what you want; the second serves the medical
     frame. Reading them together shows what the frame costs.
 
-    Returns ``nan`` when the target cannot be met — on sixteen validation images that
+    Returns ``nan`` when the target cannot be met — on twenty validation images that
     happens, and an honest nan beats a silent fallback to 0.5.
     """
     y_true, y_score = np.asarray(y_true), np.asarray(y_score)

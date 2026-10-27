@@ -266,7 +266,7 @@ plot_2d_scatter(coords, labels, title="t-SNE of the ResNet50 embeddings, coloure
         md("""
 ## 2. Where this leaves the pseudo-labels
 
-The best clustering reaches an ARI around 0.6 against the true labels. That is substantial
+The best clustering reaches an ARI around 0.46 against the true labels. That is substantial
 and far from decisive: the pseudo-labels it produces will be right often enough to be worth
 trying, and wrong often enough that the trying has to be measured.
 
@@ -282,18 +282,17 @@ and against a control that receives the same images with their pseudo-labels shu
 def build_protocol_notebook() -> list[nbf.NotebookNode]:
     return [
         md("""
-# 02 — The protocol, and what it says
-
 The first version of this comparison concluded that the semi-supervised arm improved recall
-on the cancer class, 0.900 to 0.960. Three leaks stood behind that number, all of them
-pushing the same way:
+on the cancer class, 0.900 to 0.960. Three leaks sat in the protocol that produced it:
 
 <!-- source: ../reports/dataset_summary.json -->
 1. **31 of the n = 99 evaluation images were in the pre-training pool** (notebook 01);
 2. the **clustering method** was chosen by ARI against every label, test folds included;
 3. the **cluster-to-class alignment** was decided by a vote over those same labels.
 
-And a confound: the semi-supervised arm took strictly more gradient steps than its baseline.
+There was also a confound: the semi-supervised arm took strictly more gradient steps than
+its baseline. The recall gain itself was a threshold move. The semi-supervised model ranked
+the scans less well by ROC AUC, and it placed more of them above the fixed 0.5 cut-off.
 
 This notebook reads the artefacts of the corrected protocol. It is not there to defend a
 conclusion — it is there to report one.
@@ -310,7 +309,7 @@ conclusion — it is there to report one.
 |---|---|---|
 | `supervised` | none | the reference |
 | `semi_supervised` | the fold's pseudo-labels | the supposed contribution |
-| `semi_supervised_confident` | only the pseudo-labels above a confidence cut | whether noise was the problem |
+| `semi_supervised_confident` | the pseudo-labels whose confidence clears a quantile picked on the inner validation; quantile 0 keeps them all | whether noise was the problem |
 | `permuted_control` | the same images, labels shuffled | budget and exposure |
 
 * The checkpoint and the decision threshold come from an inner validation split carved out
@@ -320,7 +319,9 @@ conclusion — it is there to report one.
 
 The control is the arm that can end the discussion. It sees the same images and takes the
 same number of steps; only the pairing between an image and its pseudo-label is destroyed.
-Every pre-training arm here has one.
+The plain semi-supervised arm is read against it. The filtered arm has no control of its
+own, so it is compared with this one, which covers every pseudo-labelled image and spends an
+equal step budget.
 """),
         code("""
 import json
@@ -414,8 +415,9 @@ recover part of that cost without ever turning it into a gain.
 
 Two explanations for the null result are worth testing. Maybe the
 pre-training is simply **forgotten** — 246 steps, then a fine-tuning that converges in two
-to four epochs. Maybe the labels come from the **wrong source** — a k-means on ImageNet
-embeddings, and not from the decision function being optimised.
+to four epochs. Maybe the labels come from the **wrong source** — a clustering of ImageNet
+embeddings (agglomerative with ward linkage in 24 of the 25 folds), and not from the decision
+function being optimised.
 
 `semi_supervised_joint` keeps the pseudo-label loss present at every step;
 `self_training` builds its labels from its own first pass. Each is read against its own
@@ -475,7 +477,7 @@ Read the `gap` column: where the model predicts 0.44 the observed cancer rate is
 mid-range scores understate risk by twenty points and more, which is the direct reason an
 operating point chosen on one split does not transport to another.
 
-Nothing is recalibrated here. A network fine-tuned on twenty images per fold has little
+Nothing is recalibrated here. A network fine-tuned on 59 or 60 images per fold has little
 chance of being calibrated, and measuring that and saying so is the result.
 """),
         code("""
@@ -506,9 +508,11 @@ print(f"pseudo-labels per fold    : {folds['n_pseudo'].mean():.0f}")
         md("""
 ## 2. What the leaks were worth
 
-The `legacy` run reproduces the original protocol faithfully — duplicates left in place,
-method and alignment decided once over every label, checkpoint taken on training accuracy.
-It exists so the difference is **measured** here, and not quoted from an old file.
+The `legacy` run reproduces the three leaks of the original protocol, and only those:
+duplicates left in place, method and alignment decided once over every label. The inner
+validation split, the checkpoint and the threshold stay as the corrected protocol does them,
+so the difference prices the leaks alone. It exists so that difference is **measured** here,
+and not quoted from an old file.
 """),
         code("""
 legacy_dir = EXPERIMENTS_DIR / "legacy"
@@ -533,8 +537,8 @@ Whatever the numbers above say, the method is the point:
 * an identity that comes from the data, so a duplicate cannot hide behind a folder;
 * every decision that reads a label made inside the training fold;
 * a control arm that makes "it helped" a falsifiable claim;
-* intervals, because with twenty images per fold a difference of one image moves recall by
-  0.05.
+* intervals, because with 19 or 20 images per test fold, about ten of them cancers, one
+  image moves accuracy by 0.05 and one cancer image moves recall by 0.10.
 
 A protocol that can only confirm what you hoped is not a protocol.
 """),
@@ -570,9 +574,9 @@ protocol was rebuilt to prevent, and notebook 03 shows how the choice is made in
             md("""
 # 03 — The protocol, and what the arms say under it
 
-The comparison itself: what the corrected protocol changes, the eight arms side by side, the
-paired differences across shared folds, and which clustering method each fold chose on its
-own data.
+The comparison itself: what the corrected protocol changes, the four arms of the corrected
+run side by side, and the paired differences across shared folds. Notebook 04 reads the four
+other arms, and notebook 05 which clustering method each fold chose on its own data.
 
 Every table below reads a finished run from `reports/experiments/`. None of them trains
 anything: a run is an evening of GPU, and a notebook that retrained would publish numbers

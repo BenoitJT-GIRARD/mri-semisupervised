@@ -4,9 +4,9 @@ Every constant lives here so that the notebooks and the scripts stay thin and
 reproducible.
 
 **The data directory is configurable.** ``MRI_DATA_DIR`` moves the dataset off the
-repository tree, which matters when the checkout sits on a synchronised drive: reading
-1 400 images per epoch from a sync mount starves the GPU. The default keeps everything
-under ``data/`` so a fresh clone works with no configuration at all.
+repository tree, which matters when the checkout sits on a synchronised drive: reading the
+pool of about 1 300 images every pre-training epoch from a sync mount starves the GPU. The
+default keeps everything under ``data/`` so a fresh clone works with no configuration at all.
 """
 
 from __future__ import annotations
@@ -155,10 +155,11 @@ class ProtocolConfig:
     #: semi-supervised arm would carry more label information than its own baseline, and
     #: the curve would then measure that imbalance, not the budget.
     label_budget: int | None = None
-    # Must match ``protocol.arms.ARMS`` exactly. It is spelled out here and not
-    # imported because ``arms`` imports this module, and a test asserts the two agree —
-    # adding an arm here and forgetting this line ran a three-arm experiment while the
-    # code believed it had four.
+    # The arms run by default. With ``protocol.arms.OPTIONAL_ARMS`` they must make up
+    # ``protocol.arms.ARMS`` exactly. The list is spelled out here and not imported because
+    # ``arms`` imports this module, and a test asserts the two agree — a fourth arm once
+    # added to ``ARMS`` and left out of this line ran a three-arm experiment while the code
+    # believed it had four.
     arms: tuple[str, ...] = (
         "supervised",
         "semi_supervised",

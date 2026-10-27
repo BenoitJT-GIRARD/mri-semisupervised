@@ -1,9 +1,10 @@
 # What the published numbers mean.
 #
-# Two quantities here are both called ROC AUC and differ by a point or two, which is reason
-# enough for this file to exist. Each column of the README tables and each axis of each
-# figure has its key below, with the population it was measured over, the dispersion beside
-# it and the direction that counts as better.
+# Two quantities here are both called ROC AUC. They differ by 0.003 to 0.021 in the corrected
+# run and by up to 0.158 in the other runs, which is reason enough for this file to exist.
+# Each column of the README tables and each axis of each figure has its key below, with the
+# population it was measured over, the dispersion beside it and the direction that counts as
+# better.
 
 metrics:
 
@@ -60,7 +61,7 @@ metrics:
       same images with shuffled labels, computed fold by fold and then averaged.
     unit: "score points"
     direction: higher_is_better
-    anchor: "+0.006 — reports/experiments/label_efficiency.parquet, 59 labels"
+    anchor: "+0.006 — reports/experiments/label_efficiency.csv, 59 labels"
     business_reading: >-
       What the pseudo-labels are worth once the effect of simply seeing more images is
       removed. Zero means the unlabelled pool bought nothing that exposure alone would not.
@@ -75,14 +76,15 @@ metrics:
       of resamples whose difference falls on the other side of zero, doubled.
     unit: "probability, 0 to 1"
     direction: lower_is_better
-    anchor: "0.008 — reports/experiments/mechanisms.parquet, joint training at 59 labels"
+    anchor: "0.008 — reports/experiments/mechanisms.csv, joint training at 59 labels"
     business_reading: >-
       Whether a difference survives the size of the dataset. Above 0.05 the two arms are
       indistinguishable on 25 folds, however different their averages look.
     source: "mri_semisupervised.protocol.uncertainty.paired_difference"
     uncertainty: >-
-      Holm correction is applied over each family of comparisons this project ran, and the
-      corrected reading is the one the README states.
+      Published uncorrected. The package implements a Holm correction
+      (`uncertainty.holm_correction`), and none of the published tables or figures applies
+      it.
 
   ari:
     definition: >-
@@ -98,5 +100,7 @@ metrics:
       found.
     source: "scripts/run_experiment.py, folds.parquet, column pseudo_ari_on_train"
     uncertainty: >-
-      Reported with its standard deviation across folds. Under the leaked protocol the same
-      quantity read 0.481 ± 0.000, and the absent spread was the tell.
+      Reported with its standard deviation across folds. The leaked protocol fits its
+      clustering once, over the 99 evaluation images and their labels, test folds included,
+      and reuses it in every fold. Its ARI reads 0.481 and its spread is zero by
+      construction, over a different set of images.
