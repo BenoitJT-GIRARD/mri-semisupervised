@@ -1,15 +1,15 @@
-# The images: where they come from, what is in them, what may be done with them
+# The image archive: provenance, contents and rights
 
 ## The archive
 
-The images come as a fixed archive of brain MRI slices, `mri_dataset_brain_cancer_oc.zip`,
-34.6 MB, received on 2026-05-10 as the material of a study brief. It has no public download
-page and no upstream URL: the file is handed over with that material, and this page is the
-only provenance record there is.
+The images come as a fixed archive of brain MRI slices, `mri_dataset_brain_cancer_oc.zip`, of
+34.6 MB, received on 2026-05-10 together with a short description of its contents. The archive has no public
+download page and no upstream URL. It was handed over with that description, and this page is the only
+record of its provenance.
 
-The note shipped inside it announces 1 500 images, 1 400 of them unlabelled. The folders hold
-1 506 files, 1 406 of them unlabelled. Nothing in the archive explains the six extra, and
-they are counted here as they are found.
+The note shipped inside the archive announces 1 500 images, 1 400 of them unlabelled. The
+folders hold 1 506 files, 1 406 of them unlabelled. The archive gives no explanation for the six
+extra files, and this repository counts the files as it finds them.
 
 ## What is in it
 
@@ -23,13 +23,14 @@ they are counted here as they are found.
 
 The fingerprint is the SHA-256 of the sorted content identities, truncated to sixteen
 characters. Every run manifest under `reports/experiments/` carries it, so someone holding the
-same archive can confirm they are looking at the same images.
+same archive can confirm that they have the same images.
 
 ## What the inventory finds
 
 `scripts/build_manifest.py` identifies every file by the SHA-256 of its **decoded pixels**,
-so a re-encoded copy of a scan lands on the identity of the original. The counts that identity
-turns up are the reason the protocol looks the way it does:
+converted to greyscale. Two files that decode to the same pixels therefore share one identity,
+whatever their names, folders or file formats. The counts below explain several choices in the
+protocol.
 
 <!-- source: ../reports/dataset_summary.json -->
 | | |
@@ -40,62 +41,68 @@ turns up are the reason the protocol looks the way it does:
 | Redundant copies inside the unlabelled pool | 63 |
 | Unlabelled images left for pre-training | 1 311 |
 > n = 1 506 files. `scripts/build_manifest.py` writes these counts to
-> [`reports/dataset_summary.json`](../reports/dataset_summary.json), which is where they are read from.
+> [`reports/dataset_summary.json`](../reports/dataset_summary.json), and the table copies them
+> from that file.
 
 <!-- source: ../reports/figures/MANIFEST.json -->
 ![What the duplicate rules do to the files the archive ships: the evaluation images and the pre-training pool, then the three categories set aside and why, n = 1 506 files](../reports/figures/dataset_composition.png)
 
-> **How to read it.** Every file the archive ships is placed once, in the band that says what
-> the inventory decided about it. Band width is the count of files, so the two bands feeding the
-> work sit beside the three that were set aside, each with the rule that excluded it. Files are
-> matched by the SHA-256 of their decoded pixels, which catches a duplicate that was saved again
-> under another name.
+> **How to read it.** Every file the archive ships is counted once, in the bar for what the
+> inventory decided about it. Bar length is the number of files. The two bars at the top hold
+> the files the work uses, and the three below hold the files set aside, each labelled with the
+> rule that excluded it. Files are matched on the SHA-256 of their decoded pixels, so a
+> duplicate saved again under another name is still recognised.
 
-A labelled image found in the pool leaves the **pool** and stays in the evaluation set:
-removing it from the evaluation would be choosing the test set after having looked at it.
-[`protocol.md`](protocol.md) carries the three rules in full, and what they cost.
+A labelled image found in the pool leaves the **pool** and stays in the evaluation set.
+Dropping it from the evaluation set would amount to choosing the test set after inspecting it.
+[`protocol.md`](protocol.md) lists the duplicate rules in full.
 
 <!-- source: ../reports/figures/MANIFEST.json -->
 ![t-SNE of the ResNet50 embeddings, the two labelled classes in colour and the unlabelled pool in grey behind them, n = 1 506 files](../reports/figures/embedding_map.png)
 
-> **How to read it.** Each point is one scan, placed by t-SNE (t-distributed stochastic
-> neighbour embedding), which arranges high-dimensional vectors on a page so that scans the
-> network found similar land near each other. The axes carry no units and distances far apart
-> mean little; what the picture supports is the local grouping. The two labelled classes occupy
-> different regions and the grey pool spreads across both.
+> **How to read it.** Each point is one file, placed by t-SNE (t-distributed stochastic
+> neighbour embedding), a method that lays out high-dimensional vectors on a plane so that scans
+> the network found similar end up close together. The axes have no units, and large distances
+> carry little meaning, so the picture supports statements about local groups. Most normal scans
+> sit in one region, most cancer scans lie elsewhere, and the grey pool covers both.
 
-The clustering works in this embedding space, and the projection above lets a reader check
-its structure without holding a single scan, with no image redistributed to show it.
+The clustering runs on these embeddings after standardisation and a PCA. The projection shows
+the structure of that space with derived coordinates only.
 
-## The other input: the pretrained weights
+## The pretrained weights
 
-The pipeline has a second source, and it determines every embedding it computes: the ImageNet
-weights of the two networks, downloaded by torchvision from
-`https://download.pytorch.org/models/`. `ResNet50_Weights.IMAGENET1K_V2` produces the features
-the clustering reads; `ResNet18_Weights.IMAGENET1K_V1` is the starting point every arm
-fine-tunes from. Both are published by the PyTorch project under its BSD-3-Clause licence
-(<https://github.com/pytorch/vision/blob/main/LICENSE>), and the version of `torchvision` that
-fetched them is recorded in every run manifest.
+The pipeline has a second input, the ImageNet weights of the two networks, which torchvision
+downloads from `https://download.pytorch.org/models/`. `ResNet50_Weights.IMAGENET1K_V2` produces
+every embedding the clustering reads, and `ResNet18_Weights.IMAGENET1K_V1` is the starting point
+of every arm. The torchvision code is published under the BSD-3-Clause licence
+(<https://github.com/pytorch/vision/blob/main/LICENSE>), and its documentation notes that
+pre-trained weights may carry their own terms, derived from the data they were trained on. Each
+run manifest records the version of `torch` it ran with. The `torchvision` version is absent
+from the manifests, and `uv.lock` pins the current one.
 
-They are not redistributed here either. They download on first use, into the torch cache.
+These weights are not redistributed here either. They download on first use into the torch
+cache.
 
 ## Rights
 
-The note inside the archive states its terms in one line: free use for academic purposes. It
-grants no right of redistribution, and none is claimed here.
+The note inside the archive states its terms in one line, which allows free use for academic
+purposes. The note grants no right of redistribution, so this repository keeps the images out
+of version control.
 
-**No image is committed to this repository.** What is versioned is derived and carries no
-pixels: fold indices, per-fold metrics, out-of-fold scores, and the run manifests. Anyone
-reproducing the work supplies their own copy of the archive and points `MRI_DATA_DIR` at it;
-`scripts/check_data.py` says whether what they pointed at is the same dataset.
+**No image is committed to this repository.** The result files under `reports/` hold derived
+values only, such as per-fold metadata, per-fold metrics, out-of-fold scores keyed by content
+identity, and the run manifests. Anyone reproducing the work supplies their own copy of the
+archive and points `MRI_DATA_DIR` at the folder that holds it under `raw/`.
+`scripts/check_data.py` then reports whether that copy is the same dataset.
 
-That rule cost one figure. A plate of the twelve most-missed scans was once committed with
-the plots; it is generated on demand now, ignored by git, and purged from the history.
+That rule cost one figure. A plate of the twelve most-missed scans, `hardest_images.png`, was
+once committed with the plots. It has been purged from the history, and its file name is
+listed in `.gitignore`.
 
 ## Personal data
 
-The slices carry no identifier of any kind: no patient, no study, no acquisition date, and
-no DICOM header. That also means the first thing a medical dataset needs, grouping folds by
-patient, cannot be checked here: two slices of the same person would be treated as two
-independent images and nothing in the archive would say otherwise. It is a limitation of the
-data, and the first question to ask of any real deployment.
+The slices carry no identifier of any kind: no patient, no study, no acquisition date, and no
+DICOM header. As a consequence, grouping the folds by patient, the first requirement of a
+medical dataset, cannot be done here. Two slices of the same person would be treated as two
+independent images, because the archive holds no field that links them. This is a limitation of
+the data, and it is the first question to ask of any real deployment.
