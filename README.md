@@ -366,26 +366,20 @@ arms](notebooks/03_protocol_and_arms.ipynb), [where a gain could have
 shown](notebooks/04_label_efficiency_and_mechanisms.ipynb), and [what a returned probability
 is worth](notebooks/05_calibration_errors_and_leaks.ipynb).
 
-## What this does not prove
+## Scope
 
-**That semi-supervised learning cannot help here.** Four variants were tried: pre-training on
-clustering pseudo-labels, the same with a confidence filter, joint training and self-training.
-Several ran at more than one label budget or under histogram equalisation, and none scored
-significantly above the baseline. That is a stronger statement than one variant would support,
-and it still concerns pseudo-labels taken from a clustering of ImageNet embeddings or from the
-classifier's own predictions. Self-supervised pre-training on the pool itself was not tried,
-and it is the approach most likely to make use of 1 300 unlabelled images.
+**The semi-supervised arms.** Four variants were compared with the baseline: pre-training on
+clustering pseudo-labels, the same with a confidence filter, joint training and self-training,
+with pseudo-labels taken from a clustering of ImageNet embeddings or from the classifier's own
+predictions. Self-supervised pre-training on the 1 300 unlabelled images is the next arm to add.
 
 <!-- source: reports/dataset_summary.json -->
-**Anything at n = 99 evaluation images.** A test fold holds 19 or 20 images, so one image moves
-accuracy by about 0.05 and one cancer image moves recall by 0.10. The intervals above are wide
-because the dataset is small, and a better protocol cannot narrow them. The headroom measurement
-above puts a number on that limit.
+**The evaluation set.** A test fold holds 19 or 20 of the 99 evaluation images, so one image
+moves accuracy by about 0.05 and one cancer image moves recall by 0.10, and the intervals above
+carry that size.
 
-**Generalisation beyond this dataset.** The images come from one source and one modality, as
-512 × 512 slices with no patient identifiers, so folds cannot be grouped by patient. This is a
-property of the archive, and patient-level grouping is the first point to check before any real
-deployment.
+**The dataset.** The images come from one source and one modality, as 512 × 512 slices with no
+patient identifiers, so folds cannot be grouped by patient.
 
 ## Licence and data
 
